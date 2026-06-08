@@ -1,0 +1,51 @@
+name: Docs CI - Validate & Build
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lint-and-validate:
+    name: Lint & Link Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Lint Markdown files
+        run: pymarkdown --config .pymarkdown.json scan docs/
+
+      - name: Check RST formatting (doc8)
+        run: doc8 docs/ --ignore-path docs/_build
+
+      - name: Run custom docs-policy validator
+        run: python tools/validate_docs.py
+
+      - name: Build Sphinx docs (warnings as errors)
+        run: make -C docs html SPHINXOPTS="-W --keep-going"
+
+      - name: Check for broken internal links
+        run: |
+          linkchecker docs/_build/html/index.html \
+            --no-warnings \
+            --check-extern \
+            --ignore-url=".*twitter.com.*" \
+            --ignore-url=".*linkedin.com.*" \
+            --ignore-url=".*github.com/RithikPorandla.*" || true
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-html
+          path: docs/_build/html/

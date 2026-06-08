@@ -1,0 +1,12 @@
+{
+  "src_dirs": ["src"],
+  "docs_dirs": ["docs"],
+  "standards_patterns": [
+    "IEC\\s?\\d{3,5}",
+    "ISO\\s?\\d{3,5}",
+    "IEEE\\s?\\d{3,5}"
+  ],
+  "require_param_docs": true,
+  "run_doctests": true,
+  "check_standards": true
+}
